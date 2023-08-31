@@ -1,0 +1,18 @@
+
+spring:
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/cardsdb?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
+    username: admin
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  sql:
+    init:
+      mode: always
