@@ -1,9 +1,10 @@
 package com.logicea.cards.card;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.support.HttpRequestHandlerServlet;
 
 /**
  * @author Alex Kiburu
@@ -24,7 +25,7 @@ public class CardController {
             @RequestParam(defaultValue="10", required=false) Integer pageSize,
             @RequestParam(defaultValue = "id", required=false) String sortBy,
             @RequestParam(defaultValue = "desc", required=false) String sortDirection,
-            HttpRequestHandlerServlet request) {
+            @Parameter(hidden = true) HttpServletRequest request) {
 
         return cardService.getCards(startDate, endDate, search, pageNumber, pageSize, sortBy, sortDirection, request);
     }
@@ -35,7 +36,7 @@ public class CardController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addCard(@RequestBody CardRequest cardRequest, HttpRequestHandlerServlet request){
+    public ResponseEntity<?> addCard(@RequestBody CardRequest cardRequest, HttpServletRequest request){
         return cardService.addCard(cardRequest, request);
     }
 

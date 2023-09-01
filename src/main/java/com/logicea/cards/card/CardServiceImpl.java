@@ -2,6 +2,7 @@ package com.logicea.cards.card;
 
 import com.logicea.cards.exceptions.ResourceNotFoundException;
 import com.logicea.cards.utils.NativeFunctions;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -11,7 +12,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.support.HttpRequestHandlerServlet;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -37,11 +37,13 @@ public class CardServiceImpl implements CardService{
             Integer pageSize,
             String sortBy,
             String sortDirection,
-            HttpRequestHandlerServlet request) {
+            HttpServletRequest request) {
         log.info("/cards startDate={}, endDate={}, search={}, pageNumber={}, pageSize={}, sortBy={}, sortDirection={}",
                 startDate, endDate, search, pageNumber, pageSize, sortBy, sortDirection);
         Map<String, Object> responseMap = new HashMap<>();
         // TODO:: get email from session to determine role and filter list accordingly
+
+        String email = (String) request.getSession().getAttribute("email");
 
         // check if either date has value
         if((null != startDate && !startDate.isEmpty() && null == endDate )
@@ -131,8 +133,8 @@ public class CardServiceImpl implements CardService{
     }
 
     @Override
-    public ResponseEntity<?> addCard(CardRequest cardRequest, HttpRequestHandlerServlet request){
-        // TODO:: get owner from session and attach as owner to card
+    public ResponseEntity<?> addCard(CardRequest cardRequest, HttpServletRequest request){
+        // get owner from session and attach as owner to card
         Map<String, Object> responseMap = new HashMap<>();
         // validate if name is present
         if( null == cardRequest.getName() && cardRequest.getName().isEmpty() ){
