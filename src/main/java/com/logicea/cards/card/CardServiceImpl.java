@@ -1,6 +1,9 @@
 package com.logicea.cards.card;
 
 import com.logicea.cards.exceptions.ResourceNotFoundException;
+import com.logicea.cards.user.Role;
+import com.logicea.cards.user.User;
+import com.logicea.cards.user.UserRepository;
 import com.logicea.cards.utils.NativeFunctions;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Alex Kiburu
@@ -26,6 +26,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CardServiceImpl implements CardService{
     private final CardRepository cardRepository;
+    private final UserRepository userRepository;
     private final NativeFunctions nativeFunctions;
 
     @Override
@@ -41,9 +42,6 @@ public class CardServiceImpl implements CardService{
         log.info("/cards startDate={}, endDate={}, search={}, pageNumber={}, pageSize={}, sortBy={}, sortDirection={}",
                 startDate, endDate, search, pageNumber, pageSize, sortBy, sortDirection);
         Map<String, Object> responseMap = new HashMap<>();
-        // TODO:: get email from session to determine role and filter list accordingly
-
-        String email = (String) request.getSession().getAttribute("email");
 
         // check if either date has value
         if((null != startDate && !startDate.isEmpty() && null == endDate )
@@ -84,22 +82,27 @@ public class CardServiceImpl implements CardService{
 
         log.info("dates selected="+startDate +", endDate="+endDate);
 
+        String ownerEmail = (String) request.getSession().getAttribute("email");
+        ownerEmail = "%".concat(ownerEmail.toLowerCase()).concat("%");
+        Optional<User> ownerOptional = userRepository.findByEmail(ownerEmail);
+        String role = ownerOptional.get().getRole().toString().toUpperCase();
+
         if(null != startDate && (null != search && !search.isEmpty())){
             // apply both dates and search filters
             pagedResult = cardRepository.findByDateAndSearch(
                     startDate,
                     formattedEndDate,
                     search.toLowerCase(),
-                    pageable);
+                    pageable, role, ownerEmail);
         }else if(null != startDate){
             // apply date filters only
-            pagedResult = cardRepository.findByDate(startDate, formattedEndDate, pageable);
+            pagedResult = cardRepository.findByDate(startDate, formattedEndDate, pageable, role, ownerEmail);
         }else if(null != search && !search.isEmpty()){
             // apply search only
-            pagedResult = cardRepository.findBySearch(search.toLowerCase(), pageable);
+            pagedResult = cardRepository.findBySearch(search.toLowerCase(), pageable, role, ownerEmail);
         }else{
             // default without filters
-            pagedResult = cardRepository.findAll(pageable);
+            pagedResult = cardRepository.findAll(pageable, role, ownerEmail);
         }
 
         List<Card> cards = pagedResult.getContent();
@@ -152,12 +155,15 @@ public class CardServiceImpl implements CardService{
             }
         }
 
+        String ownerEmail = (String) request.getSession().getAttribute("email");
+
         // insert card
         Card newCard = Card.builder()
                 .name(cardRequest.getName())
                 .color(cardRequest.getColor())
                 .description(cardRequest.getDescription())
                 .status(StatusEnum.TO_DO.label)
+                .owner(ownerEmail)
                 .createdOn(new Date())
                 .updatedOn(new Date())
                 .build();

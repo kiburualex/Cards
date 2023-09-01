@@ -19,14 +19,11 @@ public class Card {
     @Id
     @GeneratedValue
     private Long id;
-
     private String name;
-
     private String color;
-
     private String description;
-
     private String status;
+    private String owner;
 
     @ToString.Exclude
     @Column(name = "created_on", updatable=false)

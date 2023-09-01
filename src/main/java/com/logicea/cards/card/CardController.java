@@ -36,7 +36,7 @@ public class CardController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addCard(@RequestBody CardRequest cardRequest, HttpServletRequest request){
+    public ResponseEntity<?> addCard(@RequestBody CardRequest cardRequest, @Parameter(hidden = true) HttpServletRequest request){
         return cardService.addCard(cardRequest, request);
     }
 
